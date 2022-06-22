@@ -1130,6 +1130,7 @@ def main(argv):
         print("wrong input", opt, arg)
         return
 
+    #selected_p_set=cmd line gameID，不连续的. selected_p_set2=list里的序号, 0,1,2,3...连续的
     print("input set: multi-porcess + cpu start + seed start + param set + param set id + all games: ", multi_proces, cpu_back_start, seed_start, selected_p_set, selected_p_set2, all_competitions)
 
     #load all config parameters into main processor, which can't be propagated to sub-process

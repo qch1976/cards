@@ -1148,45 +1148,8 @@ def main(argv):
         #selected_p_set=cmd line gameID，不连续的. selected_p_set2=list里的序号, 0,1,2,3...连续的
         UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, selected_p_set3=selected_p_set3)
         
-    elif False == perform_comp:
-        if from_to > 0: 
-            #init or resume with 'from ... to ...', training() only
-            #这里的multiple process是针对多个game,每个CPU run一个单独的game
-            cpu = cpu_back_start
-            seed = 13
-            net0_list1 = 0
-            procs = []
-            print("YDL bundle training starting ", selected_p_set2, from_to)
-    
-            for i in range(selected_p_set2, selected_p_set2 + from_to,1):
-                if False == param_set.read_params(i):  #redundent reading in main CPU
-                    print("YDL: param read fail ", i)
-                    return                
-                
-                if multi_proces > 0 :  #on LINUX
-                    cpu_offset = (i - selected_p_set2) % multi_proces
-                    cpu = [cpu_back_start-cpu_offset]
-                    seed = seed_start+seed_offset
-                    p = Process(target=run_child, args=(init_training, reload, seed, net0_list1, i, cpu))
-                    print("YDL: game id start, cpu ", i, cpu_offset, cpu)
-                    p.start()
-                    procs.append(p)
-                    if cpu_offset >= (multi_proces-1) or (selected_p_set2 + from_to-1) == i:
-                        #waiting for sub-process complete
-                        for p in procs:   #CPU pool would help. TBD!!
-                            p.join()
-                            print('YDL joined ', i)
-                        procs = []
-                else: #single CPU on windows
-                    init_training(reload, seed, render_in_train, selected_p_set2)
-            print("YDL: from to exit 'for' ", i)
-            
-        else:
-            print("from_to init/resume without game sections")
-            #goto return
-         
-        
     elif True == perform_comp : #competition with loaded .h5, no training, demo only
+        #run comp=true first, then comp=false. 因为from_to会block
         if from_to > 0:
             cpu = cpu_back_start
             seed = 13
@@ -1225,6 +1188,39 @@ def main(argv):
         else: # competition == 0
             print("competition without game sections")
             #goto return
+        
+    elif from_to > 0: 
+        #init or resume with 'from ... to ...', training() only
+        #这里的multiple process是针对多个game,每个CPU run一个单独的game. doesn't work in windows and Debian
+        cpu = cpu_back_start
+        seed = 13
+        net0_list1 = 0
+        procs = []
+        print("YDL bundle training starting ", selected_p_set2, from_to)
+
+        for i in range(selected_p_set2, selected_p_set2 + from_to,1):
+            if False == param_set.read_params(i):  #redundent reading in main CPU
+                print("YDL: param read fail ", i)
+                return                
+            
+            if multi_proces > 0 :  #on LINUX
+                cpu_offset = (i - selected_p_set2) % multi_proces
+                cpu = [cpu_back_start-cpu_offset]
+                seed = seed_start+seed_offset
+                p = Process(target=run_child, args=(init_training, reload, seed, net0_list1, i, cpu))
+                print("YDL: game id start, cpu ", i, cpu_offset, cpu)
+                p.start()
+                procs.append(p)
+                if cpu_offset >= (multi_proces-1) or (selected_p_set2 + from_to-1) == i:
+                    #waiting for sub-process complete
+                    for p in procs:   #CPU pool would help. TBD!!
+                        p.join()
+                        print('YDL joined ', i)
+                    procs = []
+            else: #single CPU on windows
+                init_training(reload, seed, render_in_train, selected_p_set2)
+        print("YDL: from to exit 'for' ", i)
+            
         
     elif multi_proces > 0 :  # training with multiple CPUs for single game
         #这里的multiple process是针对一个game,用多个CPU run同一个game.当network大时(>??M bytes)，效果不好,不建议用

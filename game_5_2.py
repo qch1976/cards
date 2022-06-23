@@ -934,6 +934,7 @@ def demo(render, selected_p_set_game, seed0_per_cpu=13): #param_set0 isnot neede
     return discard_agent1.echo("hello2")
 
 #self test with testcases
+#selected_p_set_game=game config list的连续序号。 selected_p_set3=cmdline里的game ID,不连续
 def UT(reload0, seed0_per_cpu, render, selected_p_set_game, test_auto_level, selected_p_set3=0):
     #init training
     print("UT ..................................................", time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()))
@@ -1058,8 +1059,8 @@ def main(argv):
     seed_start = 13
     net0_list1 = 0
     selected_p_set = []
-    all_competitions = 0
     perform_UT = False
+    perform_comp = False
     test_auto_level = 0
     selected_p_set3 = 0
     enable_GPU = False
@@ -1069,7 +1070,7 @@ def main(argv):
     # get command line input params
     ####################
     try:
-        opts, args = getopt.getopt(argv,"r:m:c:s:p:a:u:t:g:")
+        opts, args = getopt.getopt(argv,"r:m:c:s:p:u:t:g:")
     except getopt.GetoptError:
         print("wrong input")
         return;
@@ -1084,6 +1085,7 @@ def main(argv):
                     reload = True
                 elif arg == 'comp' :
                     reload = True
+                    perform_comp = True
                 elif arg == 'test' :
                     reload = False
                     perform_UT = True
@@ -1100,9 +1102,6 @@ def main(argv):
             if opt == '-s':
                 seed_start = int(arg)
             
-            if opt == '-a':
-                all_competitions = int(arg)
-
             if opt == '-u':
                 test_auto_level = int(arg)
 
@@ -1130,7 +1129,7 @@ def main(argv):
         print("wrong input", opt, arg)
         return
 
-    print("input set: multi-porcess + cpu start + seed start + param set + param set id + all games: ", multi_proces, cpu_back_start, seed_start, selected_p_set, selected_p_set2, all_competitions)
+    print("input set: multi-porcess + cpu start + seed start + param set + param set id + all games: ", multi_proces, cpu_back_start, seed_start, selected_p_set, selected_p_set2, from_to)
 
     #load all config parameters into main processor, which can't be propagated to sub-process
     if False == param_set.read_params(selected_p_set2):
@@ -1146,75 +1145,89 @@ def main(argv):
     ##############################
     if True == perform_UT:
         #so far default running from main processor
+        #selected_p_set=cmd line gameID，不连续的. selected_p_set2=list里的序号, 0,1,2,3...连续的
         UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, selected_p_set3=selected_p_set3)
         
-    elif from_to > 0: 
-        #init or resume with 'from ... to ...', training() only
-        cpu = cpu_back_start
-        seed = 13
-        net0_list1 = 0
-        procs = []
-        print("YDL bundle training starting ", selected_p_set2, from_to)
-
-        for i in range(selected_p_set2, selected_p_set2 + from_to,1):
-            if False == param_set.read_params(i):  #redundent reading in main CPU
-                print("YDL: param read fail ", i)
-                return                
+    elif False == perform_comp:
+        if from_to > 0: 
+            #init or resume with 'from ... to ...', training() only
+            #这里的multiple process是针对多个game,每个CPU run一个单独的game
+            cpu = cpu_back_start
+            seed = 13
+            net0_list1 = 0
+            procs = []
+            print("YDL bundle training starting ", selected_p_set2, from_to)
+    
+            for i in range(selected_p_set2, selected_p_set2 + from_to,1):
+                if False == param_set.read_params(i):  #redundent reading in main CPU
+                    print("YDL: param read fail ", i)
+                    return                
+                
+                if multi_proces > 0 :  #on LINUX
+                    cpu_offset = (i - selected_p_set2) % multi_proces
+                    cpu = [cpu_back_start-cpu_offset]
+                    seed = seed_start+seed_offset
+                    p = Process(target=run_child, args=(init_training, reload, seed, net0_list1, i, cpu))
+                    print("YDL: game id start, cpu ", i, cpu_offset, cpu)
+                    p.start()
+                    procs.append(p)
+                    if cpu_offset >= (multi_proces-1) or (selected_p_set2 + from_to-1) == i:
+                        #waiting for sub-process complete
+                        for p in procs:   #CPU pool would help. TBD!!
+                            p.join()
+                            print('YDL joined ', i)
+                        procs = []
+                else: #single CPU on windows
+                    init_training(reload, seed, render_in_train, selected_p_set2)
+            print("YDL: from to exit 'for' ", i)
             
-            if multi_proces > 0 :  #on LINUX
-                cpu_offset = (i - selected_p_set2) % multi_proces
-                cpu = [cpu_back_start-cpu_offset]
-                seed = seed_start+seed_offset
-                p = Process(target=run_child, args=(init_training, reload, seed, net0_list1, i, cpu))
-                print("YDL: game id start, cpu ", i, cpu_offset, cpu)
-                p.start()
-                procs.append(p)
-                if cpu_offset >= (multi_proces-1) or (selected_p_set2 + from_to-1) == i:
-                    #waiting for sub-process complete
-                    for p in procs:   #CPU pool would help. TBD!!
-                        p.join()
-                        print('YDL joined ', i)
-                    procs = []
-            else: #single CPU on windows
-                init_training(reload, seed, render_in_train, selected_p_set2)
-        print("YDL: from to exit 'for' ", i)
+        else:
+            print("from_to init/resume without game sections")
+            #goto return
+         
         
-    elif all_competitions > 0 : #competition with loaded .h5, no training, demo only
-        cpu = cpu_back_start
-        seed = 13
-        reload = 'Nan'
-        net0_list1 = 0
-        procs = []
-        print("competition starting ", selected_p_set2, all_competitions)
-
-        accum_meas = meas.Measurements(0) #0= dummy his
-
-        for i in range(selected_p_set2, selected_p_set2+all_competitions,1):
-            if False == param_set.read_params(i):  #redundent reading in main CPU
-                return                
-            accum_meas.add_game_id(param_set.game_id)
+    elif True == perform_comp : #competition with loaded .h5, no training, demo only
+        if from_to > 0:
+            cpu = cpu_back_start
+            seed = 13
+            reload = 'Nan'
+            net0_list1 = 0
+            procs = []
+            print("competition starting ", selected_p_set2, from_to)
+    
+            accum_meas = meas.Measurements(0) #0= dummy his
+    
+            for i in range(selected_p_set2, selected_p_set2+from_to,1):
+                if False == param_set.read_params(i):  #redundent reading in main CPU
+                    return                
+                accum_meas.add_game_id(param_set.game_id)
+                
+                if multi_proces > 0 :  #on LINUX
+                    cpu_offset = (i - selected_p_set2) % multi_proces
+                    cpu = [cpu_back_start-cpu_offset]
+                    seed = seed_start+seed_offset
+                    p = Process(target=run_child, args=(demo, reload, seed, net0_list1, i, cpu))
+                    print("game id start ", i)
+                    p.start()
+                    procs.append(p)
+                    if cpu_offset >= (multi_proces-1) or (selected_p_set2 + from_to-1) == i:
+                        #waiting for sub-process complete
+                        for p in procs:   #CPU pool would help. TBD!!
+                            p.join()
+                            print('joined comp')
+                        procs = []
+                else: #single CPU on windows
+                    demo(render_in_demo, i, seed0_per_cpu=13)
             
-            if multi_proces > 0 :  #on LINUX
-                cpu_offset = (i - selected_p_set2) % multi_proces
-                cpu = [cpu_back_start-cpu_offset]
-                seed = seed_start+seed_offset
-                p = Process(target=run_child, args=(demo, reload, seed, net0_list1, i, cpu))
-                print("game id start ", i)
-                p.start()
-                procs.append(p)
-                if cpu_offset >= (multi_proces-1) or (selected_p_set2 + all_competitions-1) == i:
-                    #waiting for sub-process complete
-                    for p in procs:   #CPU pool would help. TBD!!
-                        p.join()
-                        print('joined comp')
-                    procs = []
-            else: #single CPU on windows
-                demo(render_in_demo, i, seed0_per_cpu=13)
+            accum_meas.assemble_records()  #collect records.csv created by demo()
+            accum_meas.analyze_competition_result()
+            
+        else: # competition == 0
+            print("competition without game sections")
+            #goto return
         
-        accum_meas.assemble_records()  #collect records.csv created by demo()
-        accum_meas.analyze_competition_result()
-        
-    elif multi_proces > 0 :  # training with multiple CPUs
+    elif multi_proces > 0 :  # training with multiple CPUs for single game
+        #这里的multiple process是针对一个game,用多个CPU run同一个game.当network大时(>??M bytes)，效果不好,不建议用
         data_mgr = Manager()
         net0_lock1 = data_mgr.Lock() #需要整体lock,不是分项
         #net0_lock2 = data_mgr.Lock()

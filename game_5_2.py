@@ -1152,6 +1152,7 @@ def main(argv):
         
     elif from_to > 0: 
         #init or resume with 'from ... to ...', training() only
+        #这里的multiple process是针对多个game,每个CPU run一个单独的game
         cpu = cpu_back_start
         seed = 13
         net0_list1 = 0
@@ -1216,7 +1217,8 @@ def main(argv):
         accum_meas.assemble_records()  #collect records.csv created by demo()
         accum_meas.analyze_competition_result()
         
-    elif multi_proces > 0 :  # training with multiple CPUs
+    elif multi_proces > 0 :  # training with multiple CPUs for single game
+        #这里的multiple process是针对一个game,用多个CPU run同一个game.当network大时(>??M bytes)，效果不好,不建议用
         data_mgr = Manager()
         net0_lock1 = data_mgr.Lock() #需要整体lock,不是分项
         #net0_lock2 = data_mgr.Lock()

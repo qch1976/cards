@@ -67,6 +67,8 @@ def main(argv):
                     sub_cmd = 'init'
                 elif arg == 'resume' :
                     sub_cmd = 'resume'
+                elif arg == 'comp' :
+                    sub_cmd = 'comp'
                 else:
                     print("wrong -r input", opt, arg)
                     return

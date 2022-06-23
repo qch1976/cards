@@ -1494,8 +1494,8 @@ batch = 50
 #competetion: ToDo : rename the gameid in existing .h5 file: gameid-envid-agentid ==> new gameid(for competetion)-envid-agentid
 #BELOW IS AUOTO GENERATED GAMES for COMPETITION
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
-game_config_sets.append([100000,	0,	0,		1,		0,		1,		50,	0,	False,	1000,	False])
-game_config_sets.append([100001,	0,	1,		0,		1,		0,		50,	0,	False,	1000,	False])
+game_config_sets.append([100000,	0,	0,		1,		0,		1,		50,	0,	False,	100,	False])
+game_config_sets.append([100001,	0,	1,		0,		1,		0,		50,	0,	False,	100,	False])
 
 ########################################
 # id >= 100100 are offical competition

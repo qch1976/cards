@@ -1151,6 +1151,8 @@ def main(argv):
     elif True == perform_comp : #competition with loaded .h5, no training, demo only
         #run comp=true first, then comp=false. 因为from_to会block
         if from_to > 0:
+            #in LINUX, it runs on multiple CPU(CentOS only, Debian can't). -m,c,t: must work together. python game_x_x.py -r comp -m xx -c xx -t xx -p xx
+            #in Windows, it runs with multiple game config on deafult CPU. python game_x_x.py -r comp -t xx -p xx
             cpu = cpu_back_start
             seed = 13
             reload = 'Nan'
@@ -1185,13 +1187,25 @@ def main(argv):
             accum_meas.assemble_records()  #collect records.csv created by demo()
             accum_meas.analyze_competition_result()
             
-        else: # competition == 0
-            print("competition without game sections")
-            #goto return
+        else:
+            #from: python many_tasksetx.py xxx. singel CPU run
+            print("competition starting ", selected_p_set2, from_to)
+    
+            accum_meas = meas.Measurements(0) #0= dummy his
+    
+            if False == param_set.read_params(i):  #redundent reading in main CPU
+                return                
+            accum_meas.add_game_id(param_set.game_id)
+            demo(render_in_demo, i, seed0_per_cpu=13)
+            
+            accum_meas.assemble_records()  #collect records.csv created by demo()
+            accum_meas.analyze_competition_result()
+
         
     elif from_to > 0: 
         #init or resume with 'from ... to ...', training() only
         #这里的multiple process是针对多个game,每个CPU run一个单独的game. doesn't work in windows and Debian
+        #-m,c,t: must work together in LINUX(CentOS only)
         cpu = cpu_back_start
         seed = 13
         net0_list1 = 0
@@ -1223,7 +1237,7 @@ def main(argv):
             
         
     elif multi_proces > 0 :  # training with multiple CPUs for single game
-        #这里的multiple process是针对一个game,用多个CPU run同一个game.当network大时(>??M bytes)，效果不好,不建议用
+        #这里的multiple process是针对一个 4in1 game,用多个CPU run同一个game.当network大时(>??M bytes)，效果不好,不建议用
         data_mgr = Manager()
         net0_lock1 = data_mgr.Lock() #需要整体lock,不是分项
         #net0_lock2 = data_mgr.Lock()
@@ -1284,7 +1298,7 @@ def main(argv):
         #run on main processor
         demo(render_in_demo, selected_p_set2, seed0_per_cpu=13)
 
-    else: #mp==0, training with single process. on main processor
+    else: #mp==0,from_to==0, training with single process. on main processor
         cpu = [cpu_back_start]
         seed = seed_start #+seed_offset, ignore offset in window debug
         '''

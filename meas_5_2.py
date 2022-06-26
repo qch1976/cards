@@ -12,7 +12,7 @@ import deal_cards_5_2 as dc
 # GPU memory tracking
 #################################
 # on LINUX with GPU only
-from pynvml import *
+#from pynvml import *
 import platform
 
 def is_Linux():
@@ -85,7 +85,7 @@ def get_size(obj, seen=None, render=False):
 ###################################
 class Measurements:
     def __init__(self, game_his):
-        self.game_his = game_his   #used in local sub-processor, shape(games,2,batch)
+        self.game_his = game_his   #used in local sub-processor, shape(games,2,batch) = [game/batch, [winner,raise level], batch]
         self.game_ids = []         #by this, read the local result record
         self.np_game_records = np.array([]) #used in main processor
         self.df_game_records = pd.DataFrame()
@@ -112,10 +112,10 @@ class Measurements:
         return win_games_sn, win_games_ew, levels_raised_sn, levels_raised_ew
 
     def write_game_record(self, param_set, win_games_sn, win_games_ew, levels_raised_sn, levels_raised_ew):
-        record_file_name = './results/game_record_' + str(param_set.game_id) + '.csv'
+        record_file_name = './results/demo_game_record_' + str(param_set.game_id) + '.csv'
         f = open(record_file_name, 'w')  #use ASCII format for easily reading
         
-        if win_games_sn > win_games_ew:
+        if levels_raised_sn > levels_raised_ew:
             winner = param_set.agent_class_s
         else:
             winner = param_set.agent_class_e
@@ -131,7 +131,7 @@ class Measurements:
 
         game_records = []
         for file_id in self.game_ids:
-            record_file_name = './results/game_record_' + str(file_id) + '.csv'
+            record_file_name = './results/demo_game_record_' + str(file_id) + '.csv'
             f = open(record_file_name, 'r')
             line0 = f.readline()
             line = line0.split(',')
@@ -144,20 +144,21 @@ class Measurements:
         
         self.np_game_records = np.array(game_records)
         self.df_game_records = pd.DataFrame(game_records, columns=('Game', 'SNID', 'EWID', 'WIN', 'SNWIN', 'EWWIN', 'SNLR', 'EWLR'))
-        filename = './results/game_results_' + str(self.game_ids[0]) + '_' + str(len(self.game_ids)) + '.csv' 
+        filename = './results/competition_results_' + str(self.game_ids[0]) + '_' + str(len(self.game_ids)) + '.csv' 
         self.df_game_records.to_csv(filename, index=False)
         print("competition game result file ", filename)
         
         time.sleep(2)
-        os.popen('rm ./results/game_record_*.csv')
+        #os.popen('rm ./results/demo_game_record_*.csv')      #keep for debug
+        #os.popen('del .\\results\\demo_game_record_*.csv')   #keep for debug
     
     def add_game_id(self, game_id):    
         self.game_ids.append(game_id)
         
     def analyze_competition_result(self):
-        agents_on_stage = self.np_game_records[:,0:2]
+        agents_on_stage = self.np_game_records[:,1:3]
         agents = set(agents_on_stage.reshape(-1))
-        winners = self.np_game_records[:,2]
+        winners = self.np_game_records[:,3]
         
         agent_results = []
         for agent in agents:
@@ -168,7 +169,7 @@ class Measurements:
             agent_results.append([agent, wins, on_stages, wins*100/on_stages])    
         
         np_agent_results = np.array(agent_results)
-        results_sorted_index = np.argsort(-np_agent_results[:,1])
+        results_sorted_index = np.argsort(-np_agent_results[:,3]) #sorting with win rate
         self.np_agent_results = np_agent_results[results_sorted_index]
         self.df_agent_results = pd.DataFrame(self.np_agent_results, columns=('agent', 'wins', 'onstage', 'rate%'))
         
@@ -268,3 +269,4 @@ class Performances:
             
 perfs = Performances()
 #perfs.performance_report()
+

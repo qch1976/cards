@@ -696,11 +696,11 @@ env_config_sets.append([5,     [-1, 0.1, 1, 1],    True ])
 ########################################
 game_config_sets=[]  #1+9. 'id' is index of -p<> and h5 file. id<100 is for debug
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,  keep_batch, demos, flag_4in1
-game_config_sets.append([1,     2,      3700,    10,      10,      10,      100,   500000, False,      0,     True])
-game_config_sets.append([2,     0,      0,       1,       0,       1,       50,    3000,   False,      0,     False])
-game_config_sets.append([3,     2,      3200,    3300,    3300,    3200,    3,     10,     False,      0,     False])
-game_config_sets.append([4,     2,      2200,    2300,    2400,    2500,    3,     10,     False,      0,     False])
-game_config_sets.append([5,     2,      3701,    10,      10,      10,      1,     500000, False,      0,     True])  #=game1444
+game_config_sets.append([1,     0,      0,       1,       2,       3,       50,    500,    False,      0,     False])
+game_config_sets.append([2,     0,      4,       5,       6,       7,       50,    500,    False,      0,     False])
+game_config_sets.append([3,     0,      2,       3,       2,       3,       50,    3000,   False,      0,     False])
+game_config_sets.append([4,     0,      4,       5,       4,       5,       50,    3000,   False,      0,     False])
+game_config_sets.append([5,     0,      1,       5,       1,       5,       1,     500000, False,      0,     True])  #=game1444
 game_config_sets.append([6,     2,      1800,    400,     317,     311,     100,   300,    False,      0,     True])
 game_config_sets.append([7,     2,      602,     1002,    1002,    1002,    100,   30000,  False,      0,     True])
 game_config_sets.append([8,     2,      702,     3802,    3802,    3802,    100,   30000,  False,      0,     True])
@@ -1494,8 +1494,13 @@ batch = 50
 #competetion: ToDo : rename the gameid in existing .h5 file: gameid-envid-agentid ==> new gameid(for competetion)-envid-agentid
 #BELOW IS AUOTO GENERATED GAMES for COMPETITION
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
-game_config_sets.append([100000,	0,	0,		1,		0,		1,		50,	0,	False,	1000,	False])
-game_config_sets.append([100001,	0,	1,		0,		1,		0,		50,	0,	False,	1000,	False])
+game_config_sets.append([100000,	0,	0,		1,		0,		1,		50,	0,	False,	200,	False])
+game_config_sets.append([100001,	0,	1,		2,		1,		2,		50,	0,	False,	200,	False])
+game_config_sets.append([100002,	0,	3,		5,		3,		5,		50,	0,	False,	200,	False])
+game_config_sets.append([100003,	0,	4,		7,		4,		7,		50,	0,	False,	200,	False])
+game_config_sets.append([100004,	0,	6,		2,		6,		2,		50,	0,	False,	200,	False])
+game_config_sets.append([100005,	0,	1,		3,		1,		3,		50,	0,	False,	200,	False])
+game_config_sets.append([100006,	0,	6,		4,		6,		4,		50,	0,	False,	200,	False])
 
 ########################################
 # id >= 100100 are offical competition

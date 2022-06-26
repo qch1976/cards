@@ -150,7 +150,7 @@ def main(argv):
     # generate competition report
     ##############################
     if 'comp' == sub_cmd and from_to > 0:   #if only one competition, doesn't create report
-        cmd_line = " python " + wrap_comp_file + "-t " + from_to + " -p " + str(selected_p_set)
+        cmd_line = " python " + wrap_comp_file + " -t " + str(from_to) + " -p " + str(selected_p_set)
         print(cmd_line)
         po.apply_async(run_child,(cmd_line,))
 

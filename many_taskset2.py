@@ -150,9 +150,14 @@ def main(argv):
     # generate competition report
     ##############################
     if 'comp' == sub_cmd and from_to > 0:   #if only one competition, doesn't create report
+        print("YDL: generate competition report ", selected_p_set, from_to)
+        po = Pool(1)  # one process for report is OK
         cmd_line = " python " + wrap_comp_file + " -t " + str(from_to) + " -p " + str(selected_p_set)
         print(cmd_line)
         po.apply_async(run_child,(cmd_line,))
+
+        po.close()    # 关闭进程池，关闭后po不再接受新的请求
+        po.join()     # 等待po中的所有子进程执行完成，必须放在close语句之后
 
     return
 

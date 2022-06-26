@@ -56,7 +56,7 @@ def main(argv):
         print("wrong input", opt, arg)
         return
 
-    print("input set: param set id + all games: ", selected_p_set, from_to)
+    print("wrap_comp: input set: param set id + all games: ", selected_p_set, from_to)
     wrap_up_competition(selected_p_set, from_to)
 
     return

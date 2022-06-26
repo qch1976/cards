@@ -1119,7 +1119,7 @@ def main(argv):
                 selected_p_set = selected_p_set1[0]
                 for i, params in enumerate(cfg.game_config_sets):
                     if params[id_game_id] == selected_p_set:  #id
-                        selected_p_set2 = i
+                        selected_p_set2 = i  #Here, selected_p_set2是game id在list中的序号，这样就允许game config ID 不连续！！！
                         break   #i
                 if True == perform_UT and 3 == test_auto_level:
                     #don't search the line ID when sanity
@@ -1163,7 +1163,8 @@ def main(argv):
             accum_meas = meas.Measurements(0) #0= dummy his
     
             for i in range(selected_p_set2, selected_p_set2+from_to,1):
-                if False == param_set.read_params(i):  #redundent reading in main CPU
+                if False == param_set.read_params(i):  #这里是和many_taskset/wrap_comp 的不同之处
+                    #Here, selected_p_set2是game id在list中的序号，这样就允许game config ID 不连续！！！
                     return                
                 accum_meas.add_game_id(param_set.game_id)
                 
@@ -1181,25 +1182,20 @@ def main(argv):
                             p.join()
                             print('joined comp')
                         procs = []
-                else: #single CPU on windows
+                else: #single CPU on windows if -t given
                     demo(render_in_demo, i, seed0_per_cpu=13)
             
             accum_meas.assemble_records()  #collect records.csv created by demo()
             accum_meas.analyze_competition_result()
             
         else:
-            #from: python many_tasksetx.py xxx. singel CPU run
+            #from_to = 0: python many_tasksetx.py xxx. no -t specified. singel CPU run
+            #or game_x.py -r comp -p xx. no -t specified
             print("competition starting ", selected_p_set2, from_to)
-    
-            accum_meas = meas.Measurements(0) #0= dummy his
-    
-            if False == param_set.read_params(i):  #redundent reading in main CPU
-                return                
-            accum_meas.add_game_id(param_set.game_id)
-            demo(render_in_demo, i, seed0_per_cpu=13)
-            
-            accum_meas.assemble_records()  #collect records.csv created by demo()
-            accum_meas.analyze_competition_result()
+            demo(render_in_demo, selected_p_set2, seed0_per_cpu=13)
+
+            #single run: doesn't generate assemble and analysis report. 
+            #from many_taskset: need not generate indivudal report here any more.
 
         
     elif from_to > 0: 
@@ -1232,7 +1228,7 @@ def main(argv):
                         print('YDL joined ', i)
                     procs = []
             else: #single CPU on windows
-                init_training(reload, seed, render_in_train, selected_p_set2)
+                init_training(reload, seed, render_in_train, i)   #here, use i, to support -t in windows(without -m,c)
         print("YDL: from to exit 'for' ", i)
             
         

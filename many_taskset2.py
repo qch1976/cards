@@ -1,5 +1,5 @@
 ###########################################
-# generate 
+# generate : LINUX only
 # taskset -c xx python game_5_2.py -r -init -p 1000
 # etc...
 # affinity can't take 100% CPU. but taskset can.
@@ -45,7 +45,8 @@ def main(argv):
     cmdid = 1
     gpu_id = 0
     enable_GPU = False
-    main_file = "game_5_2.py"  #as default
+    main_file = "game_5_2.py"  #as default #discard_testbench_5_2.py
+    wrap_comp_file = "wrap_comp.py"
     
     #spawn: start from 'target'. fork: start from 'now on'
     set_start_method('spawn', force=True) #fork does not work, multi-processes can't be started
@@ -104,7 +105,7 @@ def main(argv):
         print("wrong input", opt, arg)
         return
 
-    print("input set: multi-porcess + cpu start + seed start + param set + param set id + all games: ", multi_proces, cpu_back_start, seed_start, selected_p_set)
+    print("input set: multi-porcess + cpu start + seed start + param set id + all games: ", multi_proces, cpu_back_start, seed_start, selected_p_set, from_to)
 
         
     ##############################
@@ -115,7 +116,8 @@ def main(argv):
         print("YDL: bundle training starting ", selected_p_set, from_to)
         po = Pool(multi_proces)  # 最大的进程数
         
-        for i in range(selected_p_set, selected_p_set + from_to,1):
+        for i in range(selected_p_set, selected_p_set + from_to,1):  #Here, 要求game config ID MUST连续！！！否则，-p i可能是不存在的. 执行"param_set.read_params(i)"才行
+            #注意 selected_p_set和selected_p_set2的区别
             print("YDL: config line ", i, multi_proces)
             #seed_offset = 0 #for single deal set training only
             seed_offset = int(np.random.random_sample() * 1000000) % 65535  #for general training with various seed
@@ -144,6 +146,14 @@ def main(argv):
         po.close()    # 关闭进程池，关闭后po不再接受新的请求
         po.join()     # 等待po中的所有子进程执行完成，必须放在close语句之后
         
+    ##############################
+    # generate competition report
+    ##############################
+    if 'comp' == sub_cmd and from_to > 0:   #if only one competition, doesn't create report
+        cmd_line = " python " + wrap_comp_file + "-t " + from_to + " -p " + str(selected_p_set)
+        print(cmd_line)
+        po.apply_async(run_child,(cmd_line,))
+
     return
 
 

@@ -945,7 +945,7 @@ def UT(reload0, seed0_per_cpu, render, selected_p_set_game, test_auto_level, fro
     # sanity: [810, ~ 8xx]
     ################################
     if 3 == test_auto_level : # go to sanity. it is not a UT
-        selected_p_set = range(selected_p_set_game, selected_p_set_game+from_to+1)   #selected_p_set3 is the last p_set. [810, selected_p_set3]
+        selected_p_set = range(selected_p_set_game, selected_p_set_game+from_to)   #selected_p_set3 is the last p_set. [810, selected_p_set3]
         for selected_p_set2 in selected_p_set:
             print("UT auto level = 3: ", selected_p_set2, ", game config: ", cfg.game_config_sets[selected_p_set2])
             seed = 13

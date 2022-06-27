@@ -2993,8 +2993,10 @@ class Game54_Offline_Verify:
 
 
         if 3 == self.test_auto_level:
+            '''
             ##############
             # sanity all agents
+            # 20220627: move to game_x_x:UT()
             start_p_set = sanity_args['start_p_set']
             selected_p_set3 =  sanity_args['selected_p_set3']
             game_config = sanity_args['game_config']
@@ -3009,6 +3011,8 @@ class Game54_Offline_Verify:
                     seed = 13
                     reload = False
                     init_training(reload, seed, render_in_train, selected_p_set2, save_agent=False) #don't save agnet .h5
+            '''
+            print("UT:offline: do nothing in auto=3")
             return        
 
 

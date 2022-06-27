@@ -935,34 +935,24 @@ def demo(render, selected_p_set_game, seed0_per_cpu=13): #param_set0 isnot neede
 
 #self test with testcases
 #selected_p_set_game=game config list的连续序号。 selected_p_set3=cmdline里的game ID,不连续
-def UT(reload0, seed0_per_cpu, render, selected_p_set_game, test_auto_level, selected_p_set3=0):
+def UT(reload0, seed0_per_cpu, render, selected_p_set_game, test_auto_level, from_to=0):
     #init training
     print("UT ..................................................", time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()))
-    sanity_args = {}
     
     ################################
     # sanity 6 configs. 
     # checking: search for FAIL info in console output from online UT
     # sanity: [810, ~ 8xx]
     ################################
-    if 3 == test_auto_level : # go to sanity
-        sanity_args = {'start_p_set': 810,   #810
-                       'selected_p_set3': selected_p_set3, 
-                       'game_config': cfg.game_config_sets,
-                       'init_training': init_training,
-                       'id_game_id': id_game_id,
-                       'render_in_train': render_in_train }
-        '''
-        selected_p_set = range(810, selected_p_set3+1)   #selected_p_set3 is the last p_set. [810, selected_p_set3]
-        for i, params in enumerate(cfg.game_config_sets):
-            if params[id_game_id] in selected_p_set:  #id
-                selected_p_set2 = i
-                seed = 13
-                reload = False
-                init_training(reload, seed, render_in_train, selected_p_set2, save_agent=False) #don't save agnet .h5
+    if 3 == test_auto_level : # go to sanity. it is not a UT
+        selected_p_set = range(selected_p_set_game, selected_p_set_game+from_to+1)   #selected_p_set3 is the last p_set. [810, selected_p_set3]
+        for selected_p_set2 in selected_p_set:
+            print("UT auto level = 3: ", selected_p_set2, ", game config: ", cfg.game_config_sets[selected_p_set2])
+            seed = 13
+            reload = False
+            init_training(reload, seed, render_in_train, selected_p_set2, save_agent=False) #don't save agnet .h5
         
         return        
-        '''
         
     ################################
     # offline UT MUST: [800, 801, 802]
@@ -1006,7 +996,7 @@ def UT(reload0, seed0_per_cpu, render, selected_p_set_game, test_auto_level, sel
     game2 = Game54(param_set.batch_size, envs, discard_agent2, play_agent2_0, play_agent2_1, play_agent2_2, play_agent2_3, flag_4in1=param_set.for_in_one, train=True)
 
     UT = game_verify_off.Game54_Offline_Verify(game2, test_auto_level, class_short_name)
-    fail_TCs = UT.run_all_cases(sanity_args)
+    fail_TCs = UT.run_all_cases()
     return discard_agent2.echo("hello3")
 
 #################################
@@ -1146,7 +1136,7 @@ def main(argv):
     if True == perform_UT:
         #so far default running from main processor
         #selected_p_set=cmd line gameID，不连续的. selected_p_set2=list里的序号, 0,1,2,3...连续的
-        UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, selected_p_set3=selected_p_set3)
+        UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, from_to=from_to)
         
     elif True == perform_comp : #competition with loaded .h5, no training, demo only
         #run comp=true first, then comp=false. 因为from_to会block

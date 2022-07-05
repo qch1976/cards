@@ -1314,13 +1314,34 @@ def main(argv):
 if __name__ == "__main__":
     t0 = time.localtime()
    
+
     ######################################
     # temp test field
     ######################################
-    mm0 = np.arange(144*5)
-    mm1 = mm0.reshape((3,6,8,5))
-    mm2 = mm1.reshape((3,-1, 5), order='C')
-    mm3 = mm1.reshape((3,-1, 5))
+
+    import re
+    from itertools import combinations
+    
+    #os.popen('rm ./results/demo_game_record_*.csv')      #keep for debug
+    #os.popen('dir .\\results\\*.h5')   #keep for debug
+    file_name_list = os.listdir("./results/")
+    #pattern = 'play_e_0/1/2/3/4/5', 只有pattern一样的.h5 file才能匹配
+    #1.search pattern
+    #2.remove pattern and '.h5'
+    #split by '_', keep first part -> should be result
+    #remove10的整倍数，那些是debug purpose
+    pattern1 = 'play_e_2_'
+    pattern2 = '.h5'
+    pattern3 = r'_g.'
+    is_play_e_h5 = [ name for name in file_name_list if name.find(pattern1, 0) >= 0 and name.find(pattern2, 0) >=0 ]
+    is_agent_gx = [ re.split(r'play_e_2_|.h5', name)[1] for name in is_play_e_h5 ]
+    is_agent = [ int(re.sub(pattern3, '', name)) for name in is_agent_gx ]
+    agent_list = [ agent_id for agent_id in is_agent if agent_id % 10 !=0 ]
+    agent_set = set(agent_list)
+    
+    for i in combinations(agent_set, 2):
+        print(i)
+
     
     #ydl_gpu = meas.read_GPU_memory_usage(0)
     #ydl_gpu.total, ydl_gpu.used

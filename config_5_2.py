@@ -701,7 +701,7 @@ game_config_sets.append([2,     0,      4,       5,       6,       7,       50, 
 game_config_sets.append([3,     0,      2,       3,       2,       3,       50,    3000,   False,      0,     False])
 game_config_sets.append([4,     0,      4,       5,       4,       5,       50,    3000,   False,      0,     False])
 game_config_sets.append([5,     0,      1,       5,       1,       5,       1,     500000, False,      0,     True])  #=game1444
-game_config_sets.append([6,     2,      1800,    400,     317,     311,     100,   300,    False,      0,     True])
+game_config_sets.append([6,     2,      3604,    3605,    3603,    3607,    100,   300,    False,      0,     False])
 game_config_sets.append([7,     2,      602,     1002,    1002,    1002,    100,   30000,  False,      0,     True])
 game_config_sets.append([8,     2,      702,     3802,    3802,    3802,    100,   30000,  False,      0,     True])
 game_config_sets.append([9,     2,      802,     1000,    1000,    1000,    100,   30000,  False,      0,     True])
@@ -1441,9 +1441,38 @@ game_config_sets.append([1479,  2,      3912,    104,     104,     104,     100,
 # false-false for general training
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
 
-                                        
-def generate_competition_game_config(game_id_start, all_competitions, all_demos, batch):
-    total_agents = len(agent_config_sets)
+
+
+
+def generate_competition_game_config(game_id_start, all_demos, batch, pattern1):
+
+    import os
+    import re
+    from itertools import combinations
+    
+    file_name_list = os.listdir("./results/")
+
+    #pattern = 'play_e_0/1/2/3/4/5', 只有pattern一样的.h5 file才能匹配
+    #1.search pattern
+    #2.remove pattern and '.h5'
+    #split by '_', keep first part -> should be result
+    #remove 10的整倍数，那些是debug purpose
+    pattern1 = 'play_e_2_'
+    pattern2 = '.h5'
+    pattern3 = r'_g.'   #_gd, _gc
+    is_play_e_h5 = [ name for name in file_name_list if name.find(pattern1, 0) >= 0 and name.find(pattern2, 0) >=0 ]
+    is_agent_gx = [ re.split(r'play_e_2_|.h5', name)[1] for name in is_play_e_h5 ]
+    is_agent = [ int(re.sub(pattern3, '', name)) for name in is_agent_gx ]
+    agent_list = [ agent_id for agent_id in is_agent if agent_id % 10 !=0 ]
+    agent_set = set(agent_list)
+    
+    for i in combinations(agent_set, 2):
+        print(i)
+        
+        
+        
+        
+    total_agents = len(agent_set)
     print("total agents ", total_agents, all_competitions)
     count = 0                   
     f = open('./results/generated_games.txt', 'w+')
@@ -1483,6 +1512,7 @@ def generate_competition_game_config(game_id_start, all_competitions, all_demos,
 
         
 game_id_start = 100100  #officail competition from ID 100100
+end_ids = [2]
 all_games = len(agent_config_sets) * (len(agent_config_sets)-1) / 2  #8010/2
 all_demos = 10000
 batch = 50
@@ -1492,9 +1522,10 @@ batch = 50
 ########################################
 # id: [100000, 100099] test competition
 #competetion: ToDo : rename the gameid in existing .h5 file: gameid-envid-agentid ==> new gameid(for competetion)-envid-agentid
+
 #BELOW IS AUOTO GENERATED GAMES for COMPETITION
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
-game_config_sets.append([100000,	0,	0,		1,		0,		1,		50,	0,	False,	200,	False])
+game_config_sets.append([100000,	2,	3600,		3603,		3600,		3603,		50,	0,	False,	200,	False])
 game_config_sets.append([100001,	0,	1,		2,		1,		2,		50,	0,	False,	200,	False])
 game_config_sets.append([100002,	0,	3,		5,		3,		5,		50,	0,	False,	200,	False])
 game_config_sets.append([100003,	0,	4,		7,		4,		7,		50,	0,	False,	200,	False])

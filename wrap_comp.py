@@ -9,7 +9,7 @@
 import sys, getopt
 import meas_5_2 as meas
 
-#invoked by many_taskset2.py. to generate competition report. game_xx.py can't do it since it performs single run
+#invoked by many_taskset2.py. to generate competition report. game_xx.py can't do it since it performs single run when many_taskse invokes multiple processes
 def wrap_up_competition(selected_p_set, from_to):
     if from_to > 0:
         accum_meas = meas.Measurements(0) #0= dummy his

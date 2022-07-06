@@ -1443,11 +1443,12 @@ game_config_sets.append([1479,  2,      3912,    104,     104,     104,     100,
 
 
 
-
-def generate_competition_game_config(game_id_start, all_demos, batch, pattern1):
+#after competition config creation, MUST copy all records from <./results/generated_games.txt> to bottom of <config_x_x.py>
+def generate_competition_game_config(game_id_start, all_demos, batch, env_ID):
 
     import os
     import re
+    import numpy as np
     from itertools import combinations
     
     file_name_list = os.listdir("./results/")
@@ -1457,7 +1458,7 @@ def generate_competition_game_config(game_id_start, all_demos, batch, pattern1):
     #2.remove pattern and '.h5'
     #split by '_', keep first part -> should be result
     #remove 10的整倍数，那些是debug purpose
-    pattern1 = 'play_e_2_'
+    pattern1 = 'play_e_' + str(env_ID) + '_'
     pattern2 = '.h5'
     pattern3 = r'_g.'   #_gd, _gc
     is_play_e_h5 = [ name for name in file_name_list if name.find(pattern1, 0) >= 0 and name.find(pattern2, 0) >=0 ]
@@ -1466,57 +1467,46 @@ def generate_competition_game_config(game_id_start, all_demos, batch, pattern1):
     agent_list = [ agent_id for agent_id in is_agent if agent_id % 10 !=0 ]
     agent_set = set(agent_list)
     
-    for i in combinations(agent_set, 2):
-        print(i)
-        
-        
-        
-        
     total_agents = len(agent_set)
-    print("total agents ", total_agents, all_competitions)
+    print("total agents ", total_agents)
     count = 0                   
     f = open('./results/generated_games.txt', 'w+')
     game_lines = []             
-                                
-    for env_id in [0, 2]:  # 2 kinds of env. reward templates. competition(=demo) regardless of 'reward_template'
-        for i in range(0, total_agents-1, 1):
-            sn_agent = agent_config_sets[i][0] #id_agent_id=0
-            for j in range(i+1, total_agents, 1):
-                ew_agent = agent_config_sets[j][0]
-                
-                game_id = game_id_start + count
-                #env_id = 0 #only 0
-                agent_class_s = sn_agent
-                agent_class_e = ew_agent
-                agent_class_n = sn_agent
-                agent_class_w = ew_agent
-                batch_size = batch
-                games = 0  #no training
-                keep_batch_same_in_train = False
-                demos = all_demos
-                for_in_one = False
-                #game_config_sets.append([10000, 0, 0, 2, 0, 2, 100,50, False, 10000, False])            
-                game_line = 'game_config_sets.append([' + str(game_id) + ',\t' + str(env_id) +',\t' + str(agent_class_s) + ',\t\t' +        \
-                            str(agent_class_e) + ',\t\t' + str(agent_class_n) + ',\t\t' + str(agent_class_w) + ',\t\t' + str(batch_size) +  \
-                            ',\t' + str(games) + ',\t' + 'False' + ',\t' + str(demos) + ',\t' + 'False' + '])' + '\n'
-                f.write(game_line)
-                game_lines.append(game_line)
-                
-                count += 1
-                if count >= all_competitions:
-                    break
-            if count >= all_competitions:
-                break
-        
-    f.close()
 
+    np_agent_config_IDs = np.array(agent_config_sets)[:,0].astype(np.int32)
+    
+    for sn_ID, ew_ID in combinations(agent_set, 2):
+        print(sn_ID, ew_ID)
         
-game_id_start = 100100  #officail competition from ID 100100
-end_ids = [2]
-all_games = len(agent_config_sets) * (len(agent_config_sets)-1) / 2  #8010/2
-all_demos = 10000
-batch = 50
-#generate_competition_game_config(game_id_start, all_games, all_demos, batch)
+        #xx_ID: 不连续的ID。 xx_index: 连续的位置index
+        player_pair_index = np.where((np_agent_config_IDs == sn_ID) | (np_agent_config_IDs == ew_ID))
+        if len(player_pair_index[0]) != 2:
+            print("generate_competition_game_config: ERROR, sn/en_ID not existing. SKIP...", sn_ID, ew_ID)
+            continue
+
+        game_id = game_id_start + count
+        #env_id = 0 #only 0
+        agent_class_s = sn_ID
+        agent_class_e = ew_ID
+        agent_class_n = sn_ID
+        agent_class_w = ew_ID
+        batch_size = batch
+        games = 0  #no training
+        keep_batch_same_in_train = 'False'
+        demos = all_demos
+        for_in_one = 'False'
+
+        #game_config_sets.append([100100, 2, 3603, 3604, 3603, 3604, 100,50, False, 10000, False])            
+        game_line = 'game_config_sets.append([' + str(game_id) + ',\t' + str(env_ID) +',\t' + str(agent_class_s) + ',\t\t' +        \
+                    str(agent_class_e) + ',\t\t' + str(agent_class_n) + ',\t\t' + str(agent_class_w) + ',\t\t' + str(batch_size) +  \
+                    ',\t' + str(games) + ',\t' + keep_batch_same_in_train + ',\t' + str(demos) + ',\t' + for_in_one + '])' + '\n'
+        f.write(game_line)
+        game_lines.append(game_line)
+        count += 1
+
+    f.close()
+    return count
+
 
     
 ########################################
@@ -1524,7 +1514,7 @@ batch = 50
 #competetion: ToDo : rename the gameid in existing .h5 file: gameid-envid-agentid ==> new gameid(for competetion)-envid-agentid
 
 #BELOW IS AUOTO GENERATED GAMES for COMPETITION
-#                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
+#                        id,      env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
 game_config_sets.append([100000,	2,	3600,		3603,		3600,		3603,		50,	0,	False,	200,	False])
 game_config_sets.append([100001,	0,	1,		2,		1,		2,		50,	0,	False,	200,	False])
 game_config_sets.append([100002,	0,	3,		5,		3,		5,		50,	0,	False,	200,	False])
@@ -1538,104 +1528,9 @@ game_config_sets.append([100006,	0,	6,		4,		6,		4,		50,	0,	False,	200,	False])
 #competetion: ToDo : rename the gameid in existing .h5 file: gameid-envid-agentid ==> new gameid(for competetion)-envid-agentid
 #BELOW IS AUOTO GENERATED GAMES for COMPETITION
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,   keep_batch, demos, flag_4in1
-game_config_sets.append([100100,	0,	0,		1,		0,		1,		50,	0,	False,	10000,	False])
-game_config_sets.append([100101,	0,	0,		2,		0,		2,		50,	0,	False,	10000,	False])
-game_config_sets.append([100102,	0,	0,		3,		0,		3,		50,	0,	False,	10000,	False])
-game_config_sets.append([100103,	0,	0,		4,		0,		4,		50,	0,	False,	10000,	False])
-game_config_sets.append([100104,	0,	0,		5,		0,		5,		50,	0,	False,	10000,	False])
-game_config_sets.append([100105,	0,	0,		6,		0,		6,		50,	0,	False,	10000,	False])
-game_config_sets.append([100106,	0,	0,		7,		0,		7,		50,	0,	False,	10000,	False])
-game_config_sets.append([100107,	0,	0,		8,		0,		8,		50,	0,	False,	10000,	False])
-game_config_sets.append([100108,	0,	0,		9,		0,		9,		50,	0,	False,	10000,	False])
-game_config_sets.append([100109,	0,	0,		10,		0,		10,		50,	0,	False,	10000,	False])
-game_config_sets.append([100110,	0,	0,		11,		0,		11,		50,	0,	False,	10000,	False])
-game_config_sets.append([100111,	0,	0,		12,		0,		12,		50,	0,	False,	10000,	False])
-game_config_sets.append([100112,	0,	0,		13,		0,		13,		50,	0,	False,	10000,	False])
-game_config_sets.append([100113,	0,	0,		14,		0,		14,		50,	0,	False,	10000,	False])
-game_config_sets.append([100114,	0,	0,		15,		0,		15,		50,	0,	False,	10000,	False])
-game_config_sets.append([100115,	0,	0,		16,		0,		16,		50,	0,	False,	10000,	False])
-game_config_sets.append([100116,	0,	0,		17,		0,		17,		50,	0,	False,	10000,	False])
-game_config_sets.append([100117,	0,	0,		100,		0,		100,		50,	0,	False,	10000,	False])
-game_config_sets.append([100118,	0,	0,		101,		0,		101,		50,	0,	False,	10000,	False])
-game_config_sets.append([100119,	0,	0,		102,		0,		102,		50,	0,	False,	10000,	False])
-game_config_sets.append([100120,	0,	0,		103,		0,		103,		50,	0,	False,	10000,	False])
-game_config_sets.append([100121,	0,	0,		104,		0,		104,		50,	0,	False,	10000,	False])
-game_config_sets.append([100122,	0,	0,		105,		0,		105,		50,	0,	False,	10000,	False])
-game_config_sets.append([100123,	0,	0,		106,		0,		106,		50,	0,	False,	10000,	False])
-game_config_sets.append([100124,	0,	0,		107,		0,		107,		50,	0,	False,	10000,	False])
-game_config_sets.append([100125,	0,	0,		108,		0,		108,		50,	0,	False,	10000,	False])
-game_config_sets.append([100126,	0,	0,		109,		0,		109,		50,	0,	False,	10000,	False])
-game_config_sets.append([100127,	0,	0,		110,		0,		110,		50,	0,	False,	10000,	False])
-game_config_sets.append([100128,	0,	0,		111,		0,		111,		50,	0,	False,	10000,	False])
-game_config_sets.append([100129,	0,	0,		200,		0,		200,		50,	0,	False,	10000,	False])
-game_config_sets.append([100130,	0,	0,		201,		0,		201,		50,	0,	False,	10000,	False])
-game_config_sets.append([100131,	0,	0,		202,		0,		202,		50,	0,	False,	10000,	False])
-game_config_sets.append([100132,	0,	0,		203,		0,		203,		50,	0,	False,	10000,	False])
-game_config_sets.append([100133,	0,	0,		204,		0,		204,		50,	0,	False,	10000,	False])
-game_config_sets.append([100134,	0,	0,		205,		0,		205,		50,	0,	False,	10000,	False])
-game_config_sets.append([100135,	0,	0,		206,		0,		206,		50,	0,	False,	10000,	False])
-game_config_sets.append([100136,	0,	0,		207,		0,		207,		50,	0,	False,	10000,	False])
-game_config_sets.append([100137,	0,	0,		208,		0,		208,		50,	0,	False,	10000,	False])
-game_config_sets.append([100138,	0,	0,		209,		0,		209,		50,	0,	False,	10000,	False])
-game_config_sets.append([100139,	0,	0,		210,		0,		210,		50,	0,	False,	10000,	False])
-game_config_sets.append([100140,	0,	0,		211,		0,		211,		50,	0,	False,	10000,	False])
-game_config_sets.append([100141,	0,	0,		212,		0,		212,		50,	0,	False,	10000,	False])
-game_config_sets.append([100142,	0,	0,		213,		0,		213,		50,	0,	False,	10000,	False])
-game_config_sets.append([100143,	0,	0,		214,		0,		214,		50,	0,	False,	10000,	False])
-game_config_sets.append([100144,	0,	0,		215,		0,		215,		50,	0,	False,	10000,	False])
-game_config_sets.append([100145,	0,	0,		216,		0,		216,		50,	0,	False,	10000,	False])
-game_config_sets.append([100146,	0,	0,		217,		0,		217,		50,	0,	False,	10000,	False])
-game_config_sets.append([100147,	0,	0,		300,		0,		300,		50,	0,	False,	10000,	False])
-game_config_sets.append([100148,	0,	0,		301,		0,		301,		50,	0,	False,	10000,	False])
-game_config_sets.append([100149,	0,	0,		302,		0,		302,		50,	0,	False,	10000,	False])
-game_config_sets.append([100150,	0,	0,		303,		0,		303,		50,	0,	False,	10000,	False])
-game_config_sets.append([100151,	0,	0,		304,		0,		304,		50,	0,	False,	10000,	False])
-game_config_sets.append([100152,	0,	0,		305,		0,		305,		50,	0,	False,	10000,	False])
-game_config_sets.append([100153,	0,	0,		306,		0,		306,		50,	0,	False,	10000,	False])
-game_config_sets.append([100154,	0,	0,		307,		0,		307,		50,	0,	False,	10000,	False])
-game_config_sets.append([100155,	0,	0,		308,		0,		308,		50,	0,	False,	10000,	False])
-game_config_sets.append([100156,	0,	0,		309,		0,		309,		50,	0,	False,	10000,	False])
-game_config_sets.append([100157,	0,	0,		310,		0,		310,		50,	0,	False,	10000,	False])
-game_config_sets.append([100158,	0,	0,		311,		0,		311,		50,	0,	False,	10000,	False])
-game_config_sets.append([100159,	0,	0,		312,		0,		312,		50,	0,	False,	10000,	False])
-game_config_sets.append([100160,	0,	0,		313,		0,		313,		50,	0,	False,	10000,	False])
-game_config_sets.append([100161,	0,	0,		314,		0,		314,		50,	0,	False,	10000,	False])
-game_config_sets.append([100162,	0,	0,		315,		0,		315,		50,	0,	False,	10000,	False])
-game_config_sets.append([100163,	0,	0,		316,		0,		316,		50,	0,	False,	10000,	False])
-game_config_sets.append([100164,	0,	0,		317,		0,		317,		50,	0,	False,	10000,	False])
-game_config_sets.append([100165,	0,	0,		400,		0,		400,		50,	0,	False,	10000,	False])
-game_config_sets.append([100166,	0,	0,		401,		0,		401,		50,	0,	False,	10000,	False])
-game_config_sets.append([100167,	0,	0,		402,		0,		402,		50,	0,	False,	10000,	False])
-game_config_sets.append([100168,	0,	0,		403,		0,		403,		50,	0,	False,	10000,	False])
-game_config_sets.append([100169,	0,	0,		404,		0,		404,		50,	0,	False,	10000,	False])
-game_config_sets.append([100170,	0,	0,		405,		0,		405,		50,	0,	False,	10000,	False])
-game_config_sets.append([100171,	0,	0,		406,		0,		406,		50,	0,	False,	10000,	False])
-game_config_sets.append([100172,	0,	0,		407,		0,		407,		50,	0,	False,	10000,	False])
-game_config_sets.append([100173,	0,	0,		408,		0,		408,		50,	0,	False,	10000,	False])
-game_config_sets.append([100174,	0,	0,		409,		0,		409,		50,	0,	False,	10000,	False])
-game_config_sets.append([100175,	0,	0,		410,		0,		410,		50,	0,	False,	10000,	False])
-game_config_sets.append([100176,	0,	0,		411,		0,		411,		50,	0,	False,	10000,	False])
-game_config_sets.append([100177,	0,	0,		500,		0,		500,		50,	0,	False,	10000,	False])
-game_config_sets.append([100178,	0,	0,		501,		0,		501,		50,	0,	False,	10000,	False])
-game_config_sets.append([100179,	0,	0,		502,		0,		502,		50,	0,	False,	10000,	False])
-game_config_sets.append([100180,	0,	0,		503,		0,		503,		50,	0,	False,	10000,	False])
-game_config_sets.append([100181,	0,	0,		504,		0,		504,		50,	0,	False,	10000,	False])
-game_config_sets.append([100182,	0,	0,		505,		0,		505,		50,	0,	False,	10000,	False])
-game_config_sets.append([100183,	0,	0,		506,		0,		506,		50,	0,	False,	10000,	False])
-game_config_sets.append([100184,	0,	0,		507,		0,		507,		50,	0,	False,	10000,	False])
-game_config_sets.append([100185,	0,	0,		508,		0,		508,		50,	0,	False,	10000,	False])
-game_config_sets.append([100186,	0,	0,		509,		0,		509,		50,	0,	False,	10000,	False])
-game_config_sets.append([100187,	0,	0,		510,		0,		510,		50,	0,	False,	10000,	False])
-game_config_sets.append([100188,	0,	0,		511,		0,		511,		50,	0,	False,	10000,	False])
-game_config_sets.append([100189,	0,	1,		2,		1,		2,		50,	0,	False,	10000,	False])
-game_config_sets.append([100190,	0,	1,		3,		1,		3,		50,	0,	False,	10000,	False])
-game_config_sets.append([100191,	0,	1,		4,		1,		4,		50,	0,	False,	10000,	False])
-game_config_sets.append([100192,	0,	1,		5,		1,		5,		50,	0,	False,	10000,	False])
-game_config_sets.append([100193,	0,	1,		6,		1,		6,		50,	0,	False,	10000,	False])
-game_config_sets.append([100194,	0,	1,		7,		1,		7,		50,	0,	False,	10000,	False])
-game_config_sets.append([100195,	0,	1,		8,		1,		8,		50,	0,	False,	10000,	False])
-game_config_sets.append([100196,	0,	1,		9,		1,		9,		50,	0,	False,	10000,	False])
-game_config_sets.append([100197,	0,	1,		10,		1,		10,		50,	0,	False,	10000,	False])
-game_config_sets.append([100198,	0,	1,		11,		1,		11,		50,	0,	False,	10000,	False])
-game_config_sets.append([100199,	0,	1,		12,		1,		12,		50,	0,	False,	10000,	False])
-game_config_sets.append([100200,	0,	1,		13,		1,		13,		50,	0,	False,	10000,	False])
+game_config_sets.append([100100,	2,	3603,		3604,		3603,		3604,		50,	0,	False,	10000,	False])
+game_config_sets.append([100101,	2,	3603,		3605,		3603,		3605,		50,	0,	False,	10000,	False])
+game_config_sets.append([100102,	2,	3603,		3607,		3603,		3607,		50,	0,	False,	10000,	False])
+game_config_sets.append([100103,	2,	3604,		3605,		3604,		3605,		50,	0,	False,	10000,	False])
+game_config_sets.append([100104,	2,	3604,		3607,		3604,		3607,		50,	0,	False,	10000,	False])
+game_config_sets.append([100105,	2,	3605,		3607,		3605,		3607,		50,	0,	False,	10000,	False])

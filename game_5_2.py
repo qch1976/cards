@@ -1044,6 +1044,7 @@ def main(argv):
 #-r test -u 1 -p 800  #massive
 #-r test -u 2 -p 800  #auto
 #-r test -u 3 -p 824  #sanity: training() for configs [810, selected_p_set3]
+#-r comp -e 2         #create competition configs. depends on existing agent.h5 files only. -e specify the env ID
     multi_proces = 0
     cpu_back_start = 7
     seed_start = 13
@@ -1052,15 +1053,17 @@ def main(argv):
     perform_UT = False
     perform_comp = False
     test_auto_level = 0
+    selected_p_set2 = 0
     selected_p_set3 = 0
     enable_GPU = False
     from_to = 0
+    env_ID = -1 #competition default env = -1 means no value
 
     ####################
     # get command line input params
     ####################
     try:
-        opts, args = getopt.getopt(argv,"r:m:c:s:p:u:t:g:")
+        opts, args = getopt.getopt(argv,"r:m:c:s:p:u:t:g:e:")
     except getopt.GetoptError:
         print("wrong input")
         return;
@@ -1082,6 +1085,9 @@ def main(argv):
                 else:
                     print("wrong -r input", opt, arg)
                     return
+
+            if opt == '-e': #env ID. for competition config creation only
+                env_ID = int(arg)
 
             if opt == '-m': #multi process: 0,1-27
                 multi_proces = int(arg)
@@ -1139,8 +1145,17 @@ def main(argv):
         UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, from_to=from_to)
         
     elif True == perform_comp : #competition with loaded .h5, no training, demo only
+        if env_ID != -1:
+            #run game creation
+            game_id_start = 100100  #officail competition from ID 100100
+            all_demos = 10000
+            batch = 50
+            #generate_competition_game_config(game_id_start, all_games, all_demos, batch)
+            games = cfg.generate_competition_game_config(game_id_start, all_demos, batch, env_ID)
+            print(games, " competition config are created. MUST copy records to config_x_x.py !!!")
+            
         #run comp=true first, then comp=false. 因为from_to会block
-        if from_to > 0:
+        elif from_to > 0:
             #in LINUX, it runs on multiple CPU(CentOS only, Debian can't). -m,c,t: must work together. python game_x_x.py -r comp -m xx -c xx -t xx -p xx
             #in Windows, it runs with multiple game config on deafult CPU. python game_x_x.py -r comp -t xx -p xx
             cpu = cpu_back_start
@@ -1318,30 +1333,6 @@ if __name__ == "__main__":
     ######################################
     # temp test field
     ######################################
-
-    import re
-    from itertools import combinations
-    
-    #os.popen('rm ./results/demo_game_record_*.csv')      #keep for debug
-    #os.popen('dir .\\results\\*.h5')   #keep for debug
-    file_name_list = os.listdir("./results/")
-    #pattern = 'play_e_0/1/2/3/4/5', 只有pattern一样的.h5 file才能匹配
-    #1.search pattern
-    #2.remove pattern and '.h5'
-    #split by '_', keep first part -> should be result
-    #remove10的整倍数，那些是debug purpose
-    pattern1 = 'play_e_2_'
-    pattern2 = '.h5'
-    pattern3 = r'_g.'
-    is_play_e_h5 = [ name for name in file_name_list if name.find(pattern1, 0) >= 0 and name.find(pattern2, 0) >=0 ]
-    is_agent_gx = [ re.split(r'play_e_2_|.h5', name)[1] for name in is_play_e_h5 ]
-    is_agent = [ int(re.sub(pattern3, '', name)) for name in is_agent_gx ]
-    agent_list = [ agent_id for agent_id in is_agent if agent_id % 10 !=0 ]
-    agent_set = set(agent_list)
-    
-    for i in combinations(agent_set, 2):
-        print(i)
-
     
     #ydl_gpu = meas.read_GPU_memory_usage(0)
     #ydl_gpu.total, ydl_gpu.used

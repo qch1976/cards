@@ -1462,14 +1462,18 @@ def generate_competition_game_config(game_id_start, all_demos, batch, env_ID):
     pattern2 = '.h5'
     pattern3 = r'_g.'   #_gd, _gc
     is_play_e_h5 = [ name for name in file_name_list if name.find(pattern1, 0) >= 0 and name.find(pattern2, 0) >=0 ]
-    is_agent_gx = [ re.split(r'play_e_2_|.h5', name)[1] for name in is_play_e_h5 ]
+
+    spliter = re.compile(r"" + pattern1 +'|.h5')  #add pattern1 into r'...'
+    is_agent_gx = [ spliter.split(name)[1] for name in is_play_e_h5 ]
+    
+    #is_agent_gx = [ re.split(r'play_e_2_|.h5', name)[1] for name in is_play_e_h5 ]
     is_agent = [ int(re.sub(pattern3, '', name)) for name in is_agent_gx ]
     agent_list = [ agent_id for agent_id in is_agent if agent_id % 10 !=0 ]
     agent_set = set(agent_list)
     
     total_agents = len(agent_set)
     print("total agents ", total_agents)
-    count = 0                   
+    count = 0
     f = open('./results/generated_games.txt', 'w+')
     game_lines = []             
 

@@ -15,6 +15,36 @@ import deal_cards_5_2 as dc
 #from pynvml import *
 import platform
 
+def manual_read_net_weight(env_ID, agent_ID):
+    from tensorflow import keras
+    import re
+    
+    file_name_list = os.listdir("./results/")
+
+
+    pattern1 = str(env_ID) + '_' + str(agent_ID)
+    pattern2 = re.compile(r'(' + pattern1 +')(.*)(.h5)$')  #add pattern1 into r'...'
+    
+    #example works: search 包含 2_3602, 且以.h5结尾的字符串
+    #ydl = re.search(r'(2_3602)(.*)(.h5)$', 'play_e_2_3602_gd.h5')
+    is_pattern = [ name for name in file_name_list if re.search(pattern2, name) != None ]
+
+    threshold = 1e-8
+    print("\nsparse density for agent :", agent_ID, " with threshold=", threshold)
+    for name in is_pattern:
+        my_loss = 0
+        net = keras.models.load_model("./results/" + name, custom_objects={'my_loss': my_loss}) #{'ydl_loss': ydl_loss}, NAME MUST BE SAME
+        weight_list = net.get_weights()  #debug read
+
+        for weight in weight_list:
+            weight2 = np.where(np.abs(weight)<threshold, 1, 0)
+            if len(weight2.shape) == 1:
+                weight2 = weight2[: , np.newaxis]
+            sparse_density = np.sum(weight2) / (weight2.shape[0] * weight2.shape[1])
+            print(sparse_density, ', ', end='')
+        print(end='\n')
+ 
+
 def is_Linux():
     '''
     判断当前运行平台

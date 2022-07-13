@@ -1045,6 +1045,7 @@ def main(argv):
 #-r test -u 2 -p 800  #auto
 #-r test -u 3 -p 824  #sanity: training() for configs [810, selected_p_set3]
 #-r comp -e 2         #create competition configs. depends on existing agent.h5 files only. -e specify the env ID
+#-r net -e 2 -a 3603  #manual read or show the sparse density of network weight matrix. -e: env_id; -a: agent=3603
     multi_proces = 0
     cpu_back_start = 7
     seed_start = 13
@@ -1058,12 +1059,13 @@ def main(argv):
     enable_GPU = False
     from_to = 0
     env_ID = -1 #competition default env = -1 means no value
+    read_network = False
 
     ####################
     # get command line input params
     ####################
     try:
-        opts, args = getopt.getopt(argv,"r:m:c:s:p:u:t:g:e:")
+        opts, args = getopt.getopt(argv,"r:m:c:s:p:u:t:g:e:a:")
     except getopt.GetoptError:
         print("wrong input")
         return;
@@ -1082,9 +1084,14 @@ def main(argv):
                 elif arg == 'test' :
                     reload = False
                     perform_UT = True
+                elif arg == 'net' :
+                    read_network = True
                 else:
                     print("wrong -r input", opt, arg)
                     return
+
+            if opt == '-a': #agent ID for network weight reading
+                agent_ID = int(arg)
 
             if opt == '-e': #env ID. for competition config creation only
                 env_ID = int(arg)
@@ -1139,7 +1146,10 @@ def main(argv):
     ##############################
     # multiple processes startup
     ##############################
-    if True == perform_UT:
+    if True == read_network:
+        meas.manual_read_net_weight(env_ID, agent_ID)
+        
+    elif True == perform_UT:
         #so far default running from main processor
         #selected_p_set=cmd line gameID，不连续的. selected_p_set2=list里的序号, 0,1,2,3...连续的
         UT(reload, seed_start, render_in_train, selected_p_set2, test_auto_level, from_to=from_to)
@@ -1333,10 +1343,9 @@ if __name__ == "__main__":
     ######################################
     # temp test field
     ######################################
-    
+
     #ydl_gpu = meas.read_GPU_memory_usage(0)
     #ydl_gpu.total, ydl_gpu.used
-    
     class base:
         def __init__(self):
             print('in base')

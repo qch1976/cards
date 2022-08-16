@@ -206,7 +206,10 @@ class PlayAgentNNBase:
             targets_pi0 = self.primay_net.predict(state3s_batch) #.reshape(batch_size,-1); backgroud with previous predict
         #targets_pi = targets_pi0 * available_mask_batch  #clear the position that oindex not existing
         #replace above line
-        targets_pi = np.where(available_mask_batch==0, float("-inf"), targets_pi0) #clear the position that oindex not existing. and to avoid the case: 0 is the max
+        ydl = (targets_pi0 < 0.0)
+        if ydl.any():
+            print("YDL ERR: <0 in pi matrix")
+        targets_pi = np.where(available_mask_batch==0, float("-inf"), targets_pi0) #clear the position that oindex not existing. and to avoid the case: 0 is the max. Q: when 0 is the max? A: q could be 0 is max but pi not. conclusion is here 0 is never max.
 
         actions_sorted_oindex = np.argsort(-targets_pi, axis=1)  #(-):bigger -> smaller
         actions_max_oindex = actions_sorted_oindex[:,0:candidates]  # regardless 3 > available_len or not. =0
@@ -219,7 +222,14 @@ class PlayAgentNNBase:
 
         #re-calculate in order to sum(possibility)=100%
         action_oindex = []
-        actions_max_targets = actions_max_targets1/np.sum(actions_max_targets1, axis=1)[:,np.newaxis]
+        try:
+            #select 1 of 2 line below to verify divied by zero
+            actions_max_targets2 = np.where(actions_max_targets1==float("-inf"), 0, actions_max_targets1) #to avoid -inf to be 分母. otherwie, all divided result is 0 or nan
+            #actions_max_targets2 = actions_max_targets1
+            actions_max_targets = actions_max_targets2/np.sum(actions_max_targets2, axis=1)[:,np.newaxis]
+        except RuntimeWarning:
+            print("decide_pi: actions_max_targets divided by 0")
+            
         for i, (oindex, p_action) in enumerate(zip(actions_max_oindex, actions_max_targets)):
             try:
                 action_oindex0 = np.random.choice(oindex, p=p_action)

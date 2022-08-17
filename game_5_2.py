@@ -1162,7 +1162,7 @@ def main(argv):
             batch = 50
             #generate_competition_game_config(game_id_start, all_games, all_demos, batch)
             games = cfg.generate_competition_game_config(game_id_start, all_demos, batch, env_ID)
-            print(games, " competition config are created. MUST copy records to config_x_x.py !!!")
+            print(games, " competition config are created. MUST copy records from ./results/generated_games.txt to config_x_x.py !!!")
             
         #run comp=true first, then comp=false. 因为from_to会block
         elif from_to > 0:

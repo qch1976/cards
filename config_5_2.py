@@ -696,19 +696,19 @@ env_config_sets.append([5,     [-1, 0.1, 1, 1],    True ])
 ########################################
 game_config_sets=[]  #1+9. 'id' is index of -p<> and h5 file. id<100 is for debug
 #                        id,    env_id, agent_s, agent_e, agent_n, agent_w, batch, games,  keep_batch, demos, flag_4in1
-game_config_sets.append([1,     0,      0,       1,       2,       3,       50,    500,    False,      0,     False])
-game_config_sets.append([2,     0,      4,       5,       6,       7,       50,    500,    False,      0,     False])
-game_config_sets.append([3,     0,      2,       3,       2,       3,       50,    3000,   False,      0,     False])
-game_config_sets.append([4,     0,      4,       5,       4,       5,       50,    3000,   False,      0,     False])
-game_config_sets.append([5,     0,      1,       5,       1,       5,       1,     500000, False,      0,     True])  #=game1444
-game_config_sets.append([6,     2,      3604,    3605,    3603,    3607,    100,   300,    False,      0,     False])
-game_config_sets.append([7,     2,      602,     1002,    1002,    1002,    100,   30000,  False,      0,     True])
-game_config_sets.append([8,     2,      702,     3802,    3802,    3802,    100,   30000,  False,      0,     True])
-game_config_sets.append([9,     2,      802,     1000,    1000,    1000,    100,   30000,  False,      0,     True])
-game_config_sets.append([10,    2,      3400,    900,     2700,    2900,    50,    200,    False,      1,     True])
-game_config_sets.append([11,    2,      1002,    700,     2300,    2500,    100,   30000,  False,      0,     True])
-game_config_sets.append([12,    2,      2202,    1900,    1700,    3300,    100,   30000,  False,      0,     True])
-game_config_sets.append([13,    2,      3902,    1500,    2100,    3500,    100,   3000,   False,      0,     True])
+game_config_sets.append([1,     2,      400,     1300,    1500,    900,     50,    5000,   False,      0,     False])
+game_config_sets.append([2,     2,      2100,    2700,    2900,    3500,    50,    5000,   False,      0,     False])
+game_config_sets.append([3,     2,      500,     800,     1200,    1400,    50,    5000,   False,      0,     False])
+game_config_sets.append([4,     2,      2000,    2600,    2800,    3000,    50,    5000,   False,      0,     False])
+game_config_sets.append([5,     2,      3100,    3400,    3100,    3400,    50,    5000,   False,      0,     False])  #=game1444
+game_config_sets.append([6,     2,      1400,    2000,    2600,    2800,    50,    5000,   False,      0,     False])
+game_config_sets.append([7,     2,      3000,    3100,    3400,    1002,    50,    5000,   False,      0,     False])
+game_config_sets.append([8,     2,      2600,    3802,    3802,    3802,    50,    5000,   False,      0,     True])
+game_config_sets.append([9,     2,      2800,    1000,    1000,    1000,    50,    5000,   False,      0,     True])
+game_config_sets.append([10,    2,      3000,    900,     2700,    2900,    50,    5000,   False,      0,     True])
+game_config_sets.append([11,    2,      3100,    700,     2300,    2500,    50,    5000,   False,      0,     True])
+game_config_sets.append([12,    2,      3400,    1900,    1700,    3300,    50,    5000,   False,      0,     True])
+game_config_sets.append([13,    2,      3902,    1500,    2100,    3500,    50,    5000,   False,      0,     True])
 
 
 ########################################

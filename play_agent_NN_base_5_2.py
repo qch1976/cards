@@ -239,7 +239,7 @@ class PlayAgentNNBase:
                 action_oindex0 = np.random.choice(oindex, p=p_action)
             else:
                 if 0 == self.value_err_cnt % 4096:
-                    print("decide_pi: probabilities contain NaN. all target/possib are 0", self.value_err_cnt, "p-action: ", p_action, oindex)
+                    print("decide_pi: probabilities contain NaN. all target/possib are 0", self, self.value_err_cnt, "p-action: ", p_action, oindex)
                 self.value_err_cnt += 1
 
                 temp_oindex = np.where(available_mask_batch[i]==1)[0]

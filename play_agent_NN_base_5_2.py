@@ -239,7 +239,14 @@ class PlayAgentNNBase:
                 action_oindex0 = np.random.choice(oindex, p=p_action)
             else:
                 if 0 == self.value_err_cnt % 4096:
-                    print("decide_pi: probabilities contain NaN. all target/possib are 0", self, self.value_err_cnt, "p-action: ", p_action, oindex)
+                    if hasattr(self, 'filename_pi'):
+                        agent_name_alt = self.filename_pi
+                    elif hasattr(self, 'filename_pi_v'):
+                        agent_name_alt = self.filename_pi_v
+                    else:
+                        agent_name_alt = self
+
+                    print("decide_pi: probabilities contain NaN. all target/possib are 0", agent_name_alt, self.value_err_cnt, "p-action: ", p_action, oindex)
                 self.value_err_cnt += 1
 
                 temp_oindex = np.where(available_mask_batch[i]==1)[0]

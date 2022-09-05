@@ -334,7 +334,8 @@ class Game54:
     
     def play_games(self, games, render, keep_batch, print_game_result_cycle):
         #support batch env(card deal) with "for i" format
-        print("play game() start")
+        print("play game() start", games/self.batch_size)
+        ydl = 0
 
 
         for i in range(0, games, self.batch_size):  #how many games will play
@@ -462,6 +463,10 @@ class Game54:
             self.all_players_learning_single(game_state3s, game_actions, game_rewards, game_bs, game_next_states)  #learning per game
             tc52 = time.time()
             meas.perfs.game.perf_diff_5 += tc52 - tc51
+            
+            ydl += 1
+            print("YDL: round(1 batch run) ", ydl, ": learning takes ", tc52 - tc51, ' seconds' )
+
 
             #t, u = meas.read_GPU_memory_usage(0)
             #print("YDL GPU MEM 3 at round i, (total, used): ", i, t, u)

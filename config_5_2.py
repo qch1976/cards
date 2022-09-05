@@ -707,8 +707,8 @@ game_config_sets.append([8,     2,      2600,    3802,    3802,    3802,    50, 
 game_config_sets.append([9,     2,      2800,    1000,    1000,    1000,    50,    5000,   False,      0,     True])
 game_config_sets.append([10,    2,      3000,    900,     2700,    2900,    50,    5000,   False,      0,     True])
 game_config_sets.append([11,    2,      3100,    700,     2300,    2500,    50,    5000,   False,      0,     True])
-game_config_sets.append([12,    2,      3400,    1900,    1700,    3300,    50,    5000,   False,      0,     True])
-game_config_sets.append([13,    2,      3902,    1500,    2100,    3500,    50,    5000,   False,      0,     True])
+game_config_sets.append([12,    2,      3401,    1900,    1700,    3300,    50,    200,    False,      0,     True])
+game_config_sets.append([13,    2,      3801,    1500,    2100,    3500,    50,    5000,   False,      0,     True])
 
 
 ########################################
